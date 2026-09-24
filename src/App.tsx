@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { TOPICS, REFERENCE, GENERATORS, type Question } from "./topics";
 
 type DIBar = { label: string; value: number };
@@ -14,7 +14,7 @@ function genDIQuestion(): { bars: DIBar[]; prompt: string; answer: number; toler
   const total = bars.reduce((s, b) => s + b.value, 0);
   const target = bars[randInt(0, bars.length - 1)];
   const pct = (target.value / total) * 100;
-  return { bars, prompt: `What percentage of the total does "${target.label}" represent? (nearest whole number)`, answer: Math.round(pct), tolerance: 1 };
+  return { bars, prompt: `What percentage of the total does "${target.label}" represent? (nearest whole number)`, answer: Math.round(pct), tolerance: 0.49 };
 }
 
 export default function App() {
@@ -31,7 +31,6 @@ export default function App() {
   const topic = TOPICS.find((t) => t.id === topicId)!;
   const cards = REFERENCE[topicId] ?? [];
   const isDI = topicId === "di";
-  const maxStreak = useMemo(() => streak, [streak]);
 
   function newQuestion() {
     setInput("");
@@ -61,6 +60,8 @@ export default function App() {
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    // Once a question has been answered, Enter / Check moves on instead of scoring the same question again.
+    if (feedback) { newQuestion(); return; }
     const val = parseFloat(input);
     if (Number.isNaN(val)) return;
     const active = isDI ? diQuestion : question;
@@ -123,7 +124,7 @@ export default function App() {
           {tab === "practice" && (
             <div className="practice">
               <div className="stats-row">
-                <div className="stat"><span className="stat-label">Streak</span><span className="stat-val">{maxStreak}</span></div>
+                <div className="stat"><span className="stat-label">Streak</span><span className="stat-val">{streak}</span></div>
                 <div className="stat"><span className="stat-label">Accuracy</span><span className="stat-val">{accuracy}%</span></div>
                 <div className="stat"><span className="stat-label">Attempted</span><span className="stat-val">{attempted}</span></div>
               </div>
@@ -150,8 +151,9 @@ export default function App() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Your answer"
+                  readOnly={feedback !== null}
                 />
-                <button type="submit" className="submit-btn">Check</button>
+                <button type="submit" className="submit-btn">{feedback ? "Next ▶" : "Check"}</button>
                 <button type="button" className="ghost" onClick={newQuestion}>↺ New Question</button>
               </form>
 

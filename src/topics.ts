@@ -89,33 +89,34 @@ export const GENERATORS: Record<string, () => Question> = {
   percentage: () => {
     const y = randInt(2, 20) * 50;
     const x = pick([5, 10, 15, 20, 25, 40, 50, 75]);
-    return { prompt: `What is ${x}% of ${y}?`, answer: (x / 100) * y, tolerance: 0.5 };
+    return { prompt: `What is ${x}% of ${y}? (decimals allowed)`, answer: (x / 100) * y, tolerance: 0.001 };
   },
   profitloss: () => {
     const cp = randInt(2, 20) * 50;
     if (Math.random() > 0.5) {
       const pct = pick([5, 10, 20, 25, 40]);
-      return { prompt: `CP is ${cp}. What is the Selling Price for a ${pct}% profit?`, answer: cp * (1 + pct / 100), tolerance: 0.5 };
+      return { prompt: `CP is ${cp}. What is the Selling Price for a ${pct}% profit? (decimals allowed)`, answer: cp * (1 + pct / 100), tolerance: 0.001 };
     }
-    const sp = cp - randInt(1, 15) * 10;
+    // keep the selling price positive: at most cp - 10
+    const sp = cp - randInt(1, Math.min(15, cp / 10 - 1)) * 10;
     const lossPct = ((cp - sp) / cp) * 100;
-    return { prompt: `CP is ${cp}, SP is ${sp}. What is the loss percent (to 1 decimal)?`, answer: Math.round(lossPct * 10) / 10, tolerance: 0.3 };
+    return { prompt: `CP is ${cp}, SP is ${sp}. What is the loss percent (to 1 decimal)?`, answer: Math.round(lossPct * 10) / 10, tolerance: 0.05 };
   },
   timework: () => {
     const x = pick([6, 8, 10, 12, 15, 20]);
     const y = pick([10, 12, 15, 20, 24, 30]);
     const t = (x * y) / (x + y);
-    return { prompt: `A finishes a job in ${x} days, B in ${y} days. Working together, how many days (to 2 decimals)?`, answer: Math.round(t * 100) / 100, tolerance: 0.05 };
+    return { prompt: `A finishes a job in ${x} days, B in ${y} days. Working together, how many days (to 2 decimals)?`, answer: Math.round(t * 100) / 100, tolerance: 0.011 };
   },
   speed: () => {
     if (Math.random() > 0.5) {
       const d = randInt(2, 24) * 10;
       const t = pick([1, 2, 3, 4, 5, 6]);
-      return { prompt: `A car travels ${d} km in ${t} hours. What is its speed in km/h?`, answer: d / t, unit: "km/h", tolerance: 0.1 };
+      return { prompt: `A car travels ${d} km in ${t} hours. What is its speed in km/h?`, answer: d / t, unit: "km/h", tolerance: 0.011 };
     }
     const s = pick([40, 50, 60, 70, 80, 90]);
     const t = pick([1, 2, 3, 4]);
-    return { prompt: `A car travels at ${s} km/h for ${t} hours. What distance (km) does it cover?`, answer: s * t, unit: "km", tolerance: 0.1 };
+    return { prompt: `A car travels at ${s} km/h for ${t} hours. What distance (km) does it cover?`, answer: s * t, unit: "km", tolerance: 0.001 };
   },
   numbersystem: () => {
     const n = randInt(100, 9999);
@@ -126,24 +127,24 @@ export const GENERATORS: Record<string, () => Question> = {
     const red = randInt(2, 10);
     const blue = randInt(2, 10);
     const p = red / (red + blue);
-    return { prompt: `A bag has ${red} red and ${blue} blue balls. What is the probability of drawing red (2 decimals)?`, answer: Math.round(p * 100) / 100, tolerance: 0.01 };
+    return { prompt: `A bag has ${red} red and ${blue} blue balls. What is the probability of drawing red (2 decimals)?`, answer: Math.round(p * 100) / 100, tolerance: 0.006 };
   },
   squarescubes: () => {
     if (Math.random() > 0.5) {
       const n = randInt(11, 30);
-      return { prompt: `What is ${n} squared?`, answer: n * n, tolerance: 0.5 };
+      return { prompt: `What is ${n} squared?`, answer: n * n, tolerance: 0.001 };
     }
     const n = randInt(6, 15);
-    return { prompt: `What is ${n} cubed?`, answer: n * n * n, tolerance: 0.5 };
+    return { prompt: `What is ${n} cubed?`, answer: n * n * n, tolerance: 0.001 };
   },
   geometry: () => {
     if (Math.random() > 0.5) {
       const l = randInt(4, 20);
       const b = randInt(3, 15);
-      return { prompt: `A rectangle has length ${l} and breadth ${b}. What is its area?`, answer: l * b, tolerance: 0.5 };
+      return { prompt: `A rectangle has length ${l} and breadth ${b}. What is its area?`, answer: l * b, tolerance: 0.001 };
     }
     const r = pick([7, 14, 21, 28]);
     const area = (22 / 7) * r * r;
-    return { prompt: `A circle has radius ${r} (use pi = 22/7). What is its area?`, answer: area, tolerance: 0.5 };
+    return { prompt: `A circle has radius ${r} (use pi = 22/7). What is its area?`, answer: area, tolerance: 0.001 };
   },
 };
