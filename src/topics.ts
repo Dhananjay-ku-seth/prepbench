@@ -112,7 +112,12 @@ export const GENERATORS: Record<string, () => Question> = {
     if (Math.random() > 0.5) {
       const d = randInt(2, 24) * 10;
       const t = pick([1, 2, 3, 4, 5, 6]);
-      return { prompt: `A car travels ${d} km in ${t} hours. What is its speed in km/h?`, answer: d / t, unit: "km/h", tolerance: 0.011 };
+      // t=3 or t=6 against a d that isn't a multiple of 3 gives a repeating decimal (e.g. 100/6 =
+      // 16.666...). Round to 2dp and say so, the same way probability/timework round and label
+      // their own non-terminating results — otherwise the tolerance below (tuned for an
+      // already-rounded answer) rejects a perfectly correct 2dp response.
+      const ans = Math.round((d / t) * 100) / 100;
+      return { prompt: `A car travels ${d} km in ${t} hours. What is its speed in km/h? (2 decimals if not exact)`, answer: ans, unit: "km/h", tolerance: 0.006 };
     }
     const s = pick([40, 50, 60, 70, 80, 90]);
     const t = pick([1, 2, 3, 4]);

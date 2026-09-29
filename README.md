@@ -2,7 +2,7 @@
 
 **Aptitude shortcuts and practice — 9 topics, instant feedback, no sign-up needed.**
 
-**Live demo:** _add your Vercel URL here_
+**Live demo:** https://prepbench.vercel.app/
 
 ## What it does
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TOPICS, REFERENCE, GENERATORS, type Question } from "./topics";
 
 type DIBar = { label: string; value: number };
@@ -27,6 +27,18 @@ export default function App() {
   const [streak, setStreak] = useState(0);
   const [attempted, setAttempted] = useState(0);
   const [correct, setCorrect] = useState(0);
+  const [pulseKey, setPulseKey] = useState(0);
+  const [pulsing, setPulsing] = useState(false);
+  const [shake, setShake] = useState(false);
+  const [qGen, setQGen] = useState(0);
+  const firstPulse = useRef(true);
+
+  useEffect(() => {
+    if (firstPulse.current) { firstPulse.current = false; return; }
+    setPulsing(true);
+    const t = setTimeout(() => setPulsing(false), 400);
+    return () => clearTimeout(t);
+  }, [pulseKey]);
 
   const topic = TOPICS.find((t) => t.id === topicId)!;
   const cards = REFERENCE[topicId] ?? [];
@@ -35,6 +47,7 @@ export default function App() {
   function newQuestion() {
     setInput("");
     setFeedback(null);
+    setQGen((n) => n + 1);
     if (isDI) {
       setDiQuestion(genDIQuestion());
       setQuestion(null);
@@ -68,6 +81,7 @@ export default function App() {
     if (!active) return;
     const ok = Math.abs(val - active.answer) <= active.tolerance;
     setAttempted((a) => a + 1);
+    setPulseKey((k) => k + 1);
     if (ok) {
       setCorrect((c) => c + 1);
       setStreak((s) => s + 1);
@@ -75,6 +89,8 @@ export default function App() {
     } else {
       setStreak(0);
       setFeedback("wrong");
+      setShake(true);
+      setTimeout(() => setShake(false), 350);
     }
   }
 
@@ -112,7 +128,7 @@ export default function App() {
           {tab === "reference" && (
             <div className="cards">
               {cards.map((c, i) => (
-                <div key={i} className="ref-card">
+                <div key={i} className="ref-card" style={{ ["--i" as any]: i }}>
                   <span className="ref-title">{c.title}</span>
                   <span className="ref-formula">{c.formula}</span>
                   <span className="ref-note">{c.note}</span>
@@ -124,16 +140,16 @@ export default function App() {
           {tab === "practice" && (
             <div className="practice">
               <div className="stats-row">
-                <div className="stat"><span className="stat-label">Streak</span><span className="stat-val">{streak}</span></div>
-                <div className="stat"><span className="stat-label">Accuracy</span><span className="stat-val">{accuracy}%</span></div>
-                <div className="stat"><span className="stat-label">Attempted</span><span className="stat-val">{attempted}</span></div>
+                <div className="stat"><span className="stat-label">Streak</span><span className={"stat-val" + (pulsing ? " pulse" : "")}>{streak}</span></div>
+                <div className="stat"><span className="stat-label">Accuracy</span><span className={"stat-val" + (pulsing ? " pulse" : "")}>{accuracy}%</span></div>
+                <div className="stat"><span className="stat-label">Attempted</span><span className={"stat-val" + (pulsing ? " pulse" : "")}>{attempted}</span></div>
               </div>
 
               {isDI && diQuestion && (
-                <div className="di-chart">
+                <div className="di-chart" key={qGen}>
                   {diQuestion.bars.map((b, i) => (
                     <div key={i} className="di-bar-wrap">
-                      <div className="di-bar" style={{ height: `${b.value}px` }} />
+                      <div className="di-bar" style={{ height: `${b.value}px`, ["--i" as any]: i }} />
                       <span className="di-bar-label">{b.label}</span>
                       <span className="di-bar-val">{b.value}</span>
                     </div>
@@ -148,6 +164,7 @@ export default function App() {
                   autoFocus
                   type="number"
                   step="any"
+                  className={shake ? "shake" : ""}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Your answer"
